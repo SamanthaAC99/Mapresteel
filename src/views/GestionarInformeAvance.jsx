@@ -1,6 +1,6 @@
 import React from "react";
 import Typography from '@mui/material/Typography';
-import { Routes, Route, useParams } from 'react-router-dom';  //permite obtener dato de una vista o orden a travez de una url
+import { useParams } from 'react-router-dom';  //permite obtener dato de una vista o orden a travez de una url
 import { useState, useEffect } from "react";
 import TextField from '@mui/material/TextField';
 import Avatar from '@mui/material/Avatar';
@@ -45,8 +45,10 @@ export default function GestionInformeAvance() {
   const [faltantesActualizada, setFaltantesActualizada] = useState("");
   const [elaboradas2, setElaboradas2] = useState(0);
   const [elaboradasGalvanizadas, setElaboradasGalvanizadas] = useState("");
-  const getData = async () => {
+  const [calculoAcc,setCalculoAcc] = useState({stock:0,porcentaje_produccion:0,elaborados_produccion:0,faltan_produccion:0})
+  const [aceptarCalculo,setAceptarCalculo] = useState(false)
 
+  const getData = async () => {
     const docRef = doc(db, "ordenescompra", id);
     const docSnap = await getDoc(docRef);
 
@@ -88,6 +90,7 @@ const filterStateProducidas = (state) => {
 
   const abrirModalProducción = (_data) => {
     setAccesorioEspecifico(_data)
+    console.log(_data)
     setModalProduccion(true)
   }
 
@@ -107,75 +110,70 @@ const filterStateProducidas = (state) => {
         return item
       }
     })
+    setModalEditar(false)
     setOrdenesCompra(almacenar_datos)
-  const washingtonRef = doc(db, "ordenescompra", id);
-  await updateDoc(washingtonRef, {
-    accesorios: almacenar_datos
-  });
+    setCalculoAcc({stock:0,porcentaje_produccion:0,elaborados_produccion:0,faltan_produccion:0})
+    // const washingtonRef = doc(db, "ordenescompra", id);
+    // await updateDoc(washingtonRef, {
+    //   accesorios: almacenar_datos
+    // });
+
  }
 
 
 
  const actualizarProduccion = async (_data) => { 
-  console.log("cajas",elaboradasCajas)
-  console.log("kg",elaboradasKg)
-  var cajas=(elaboradasCajas*12.5)
-  console.log("cajasT",cajas) 
-  var suma= ((+cajas) + (+elaboradasKg));
-  console.log("suma",suma)
+
+
+  let cajas =(parseInt(elaboradasCajas)*12.5) // calculamos cantidad de cajas 
+
+  var peso_total = parseFloat(cajas) + parseFloat(elaboradasKg);
+
+
+  let acc =JSON.parse(JSON.stringify(accesorioEspecifico))
+  let piezas_totales = parseFloat(acc.piezas_kg) * peso_total
+  acc["elaborados_produccion"] = piezas_totales
+
+  let faltantes_aux = parseInt(acc.faltan_produccion )
+  if(faltantes_aux<= piezas_totales){
+    let faltan_aux = piezas_totales - faltantes_aux
+
+    acc['faltan_produccion'] = 0
+    acc['porcentaje_produccion'] = 100
+    acc['stock'] = faltan_aux
+    acc['situacion'] = "Producido"
+  }else{
+    let faltan_aux = faltantes_aux - piezas_totales 
+    let porcentaje = ((parseInt(acc.cantidad_orden) - faltan_aux )/parseInt(acc.cantidad_orden))*100
+    acc['porcentaje_produccion'] = porcentaje
+
+    acc['faltan_produccion'] = faltan_aux
+    acc['stock'] = 0
+  }
+  setCalculoAcc(acc)
+  setAceptarCalculo(false)
+  console.log(acc)
+
+}
+
+
+const actualizarFaltantes = async () => { 
   let varible_accesorios=JSON.parse(JSON.stringify(ordenesCompra))
-  let especifico_accesorios=JSON.parse(JSON.stringify(accesorioEspecifico))
-  setPieza(especifico_accesorios)
-  setPieza2(pieza.piezas_kg)
-  console.log("especifico_accesorios",pieza2)
-  var total = (suma*pieza2)
-  console.log("Total",total) 
-  setElaboradasProduccion(total)
-  especifico_accesorios["elaborados_produccion"]=elaboradasProduccion
-  let almacenar_datos=varible_accesorios.map(item => {
-     if (item.numero===especifico_accesorios.numero){
-       return especifico_accesorios
+  let calc=JSON.parse(JSON.stringify(calculoAcc))
+    let almacenar_datos=varible_accesorios.map(item => {
+     if (item.numero===calc.numero){
+       return calc
      } else {
        return item
      }
    })
    setOrdenesCompra(almacenar_datos)
- const washingtonRef = doc(db, "ordenescompra", id);
- await updateDoc(washingtonRef, {
-   accesorios: almacenar_datos
- });
-}
-
-
-const actualizarFaltantes = async (_data) => { 
-  let varible_accesorios=JSON.parse(JSON.stringify(ordenesCompra))
-  let especifico_accesorios=JSON.parse(JSON.stringify(accesorioEspecifico))
-  setPieza(especifico_accesorios)
-  setElaboradas2(pieza.elaborados_produccion)
-  setFalta(pieza.faltan_produccion)
-  var restaFaltantes= (falta-elaboradas2)
-  setFaltantesActualizada(elaboradas2)
-  console.log("ela",restaFaltantes) 
-  console.log("falta",falta) 
-  console.log("faltap",faltantesActualizada) 
-  especifico_accesorios["faltan_produccion"]=restaFaltantes
-  let almacenar_datos=varible_accesorios.map(item => {
-    // if (especifico_accesorios.elaborados_produccion<=especifico_accesorios.faltan_produccion){
-      if (item.numero===especifico_accesorios.numero){
-        return especifico_accesorios
-      } else {
-        return item
-      } 
-    // } else {
-    //   return especifico_accesorios2
-    // }
-     
-   })
-   setOrdenesCompra(almacenar_datos)
- const washingtonRef = doc(db, "ordenescompra", id);
- await updateDoc(washingtonRef, {
-   accesorios: almacenar_datos
- });
+   setAceptarCalculo(true)
+   setModalProduccion(false)
+//  const washingtonRef = doc(db, "ordenescompra", id);
+//  await updateDoc(washingtonRef, {
+//    accesorios: almacenar_datos
+//  });
 }
 
 const actualizarGalvanizado = async (_data) => { 
@@ -354,10 +352,10 @@ await updateDoc(washingtonRef, {
           <FormGroup>
             <Grid container spacing={2}>
               <Grid item xs={12} md={12}>
-                <TextField id="outlined-basic" inputProps={{ style: { textTransform: "uppercase" } }} value={faltaProducir} error={false} fullWidth label="Faltan Produccion" variant="outlined" onChange={(event) => { setFaltaProducir(event.target.value) }} />
+                <TextField id="outlined-basic" inputProps={{ style: { textTransform: "uppercase" } }} value={faltaProducir} error={false} fullWidth label="Faltan Produccion" variant="outlined" type="number" onChange={(event) => { setFaltaProducir(event.target.value) }} />
               </Grid>
               <Grid item xs={12} md={12}>
-                <TextField id="outlined-basic" inputProps={{ style: { textTransform: "uppercase" } }} value={faltaGalvanizar} error={false} fullWidth label="Faltan Galvanizado" variant="outlined" onChange={(event) => { setFaltaGalvanizar(event.target.value) }} />
+                <TextField id="outlined-basic" inputProps={{ style: { textTransform: "uppercase" } }} value={faltaGalvanizar} error={false} fullWidth label="Faltan Galvanizado" variant="outlined" type="number"  onChange={(event) => { setFaltaGalvanizar(event.target.value) }} />
               </Grid>
             </Grid>
           </FormGroup>
@@ -387,16 +385,26 @@ await updateDoc(washingtonRef, {
 
       <Modal isOpen={modalProduccion}>
         <ModalHeader>
-          <div><h3>Cargar Produccion</h3></div>
+          <div><h3>Cargar Produccion de pieza - {accesorioEspecifico.numero}</h3></div>
         </ModalHeader>
         <ModalBody>
           <FormGroup>
             <Grid container spacing={2}>
               <Grid item xs={12} md={6}>
-                <TextField id="outlined-basic" inputProps={{ style: { textTransform: "uppercase" } }} value={elaboradasCajas} error={false} fullWidth label="Cajas" variant="outlined" onChange={(event) => { setElaboradasCajas(event.target.value) }} />
+                <TextField id="outlined-basic" type="number" inputProps={{ style: { textTransform: "uppercase" } }} value={elaboradasCajas} error={false} fullWidth label="Cajas" variant="outlined" onChange={(event) => { setElaboradasCajas(event.target.value) }} />
               </Grid>
               <Grid item xs={12} md={6}>
-                <TextField id="outlined-basic" inputProps={{ style: { textTransform: "uppercase" } }} value={elaboradasKg} error={false} fullWidth label="Kg Extras" variant="outlined" onChange={(event) => { setElaboradasKg(event.target.value) }} />
+                <TextField id="outlined-basic" type="number" inputProps={{ style: { textTransform: "uppercase" } }} value={elaboradasKg} error={false} fullWidth label="Kg Extras" variant="outlined" onChange={(event) => { setElaboradasKg(event.target.value) }} />
+              </Grid>
+              <Grid item xs={12} md={12}>
+                <div>
+                  <h5>Calculos Generados</h5>
+                  <p><strong>stock actual calculado:  </strong>{calculoAcc.stock}</p> 
+                  <p><strong>porcentaje de produccion: </strong> {calculoAcc.porcentaje_produccion}</p> 
+                  <p><strong>piezas generadas: </strong>{calculoAcc.elaborados_produccion}</p> 
+                  <p><strong>faltan: </strong>{calculoAcc.faltan_produccion}</p>
+
+                </div>
               </Grid>
             </Grid>
           </FormGroup>
@@ -413,6 +421,7 @@ await updateDoc(washingtonRef, {
           <Button
             variant="outlined"
             className="boton-modal2"
+            disabled={aceptarCalculo}
             onClick={()=>{actualizarFaltantes()}}
           >
             Aceptar
@@ -422,6 +431,8 @@ await updateDoc(washingtonRef, {
             className="boton-modal"
             onClick={() => {
               setModalProduccion(false)
+              setAceptarCalculo(true)
+              setCalculoAcc({stock:0,porcentaje_produccion:0,elaborados_produccion:0,faltan_produccion:0})
             }}
           >
             Cancelar
