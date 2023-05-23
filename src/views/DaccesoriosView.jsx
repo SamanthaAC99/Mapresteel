@@ -41,6 +41,7 @@ export default function DaccesoriosView() {
   const [porcentaje_totalP, setPorcentaje_totalP] = useState(0)
   const [porcentaje_totalG, setPorcentaje_totalG] = useState(0)
   const [situacion, setSituacion] = useState("Activo")
+  const [stock, setStock] = useState(0)
   const [deshabilitar,setDeshabilitar] = useState(false);
   const [modalEditar,setModalEditar] = useState(false);
   const [currentEquipo,setCurrentEquipo] = useState({})
@@ -99,7 +100,8 @@ export default function DaccesoriosView() {
       setCodigo("");
       setNumero("");
       setPeso("");
-      setTiempo("")
+      setTiempo("");
+      setPiezas_kg("")
   }
   const navegarView = (ruta) => {
     navigate(`/${params.uid}/${ruta}`);
@@ -148,6 +150,7 @@ export default function DaccesoriosView() {
           let check15 = aux.find(item => item.porcentaje_totalP === porcentaje_totalP)
           let check16 = aux.find(item => item.porcentaje_totalG === porcentaje_totalG)
           let check17 = aux.find(item => item.situacion === "Activo")
+          let check18 = aux.find(item => item.stock === stock)
           if (check1 === undefined && check2 === undefined) {
             let ordenados = aux.sort((a, b) => parseInt(b.codigo) - parseInt(a.codigo));
             if(ordenados.length === 0){
@@ -172,7 +175,8 @@ export default function DaccesoriosView() {
                 porcentaje_galvanizado:porcentaje_galvanizado,
                 porcentaje_totalP:porcentaje_totalP,
                 porcentaje_totalG:porcentaje_totalG,
-                situacion:situacion
+                situacion:situacion,
+                stock:stock
                 
             }
             
@@ -225,25 +229,28 @@ export default function DaccesoriosView() {
                                 >Regresar</Button>
               </Grid>
               <Grid item xs={12} md={10}> </Grid>
-              <Grid item xs={12} md={2}>
+              <Grid item xs={12} md={1.71}>
                   <TextField id="outlined-basic" inputProps={{ style: { textTransform: "uppercase" } }} value={numero} error={false} fullWidth label="Número" variant="outlined" onChange={(event) => { setNumero(event.target.value) }} />
               </Grid>
-              <Grid item xs={12} md={2}>
+              <Grid item xs={12} md={1.71}>
                   <TextField id="outlined-basic" inputProps={{ style: { textTransform: "uppercase" } }} value={nombre} error={false} fullWidth label="Nombre" variant="outlined" onChange={(event) => { setNombre(event.target.value) }} />
               </Grid>
-              <Grid item xs={12} md={2}>
+              <Grid item xs={12} md={1.71}>
                   <TextField id="outlined-basic" inputProps={{ style: { textTransform: "uppercase" } }} value={codigo} error={false} fullWidth label="Código" variant="outlined" onChange={(event) => { setCodigo(event.target.value) }} />
               </Grid>
-              <Grid item xs={12} md={2}>
+              <Grid item xs={12} md={1.71}>
                   <TextField id="outlined-basic" inputProps={{ style: { textTransform: "uppercase" } }} value={peso} error={false} fullWidth label="Peso" variant="outlined" onChange={(event) => { setPeso(event.target.value) }} />
               </Grid>
-              <Grid item xs={12} md={2}>
+              <Grid item xs={12} md={1.71}>
                   <TextField id="outlined-basic" inputProps={{ style: { textTransform: "uppercase" } }} value={tiempo} error={false} fullWidth label="Tiempo" variant="outlined" onChange={(event) => { setTiempo(event.target.value) }} />
+              </Grid>
+              <Grid item xs={12} md={1.71}>
+                  <TextField id="outlined-basic" inputProps={{ style: { textTransform: "uppercase" } }} value={piezas_kg} error={false} fullWidth label="#Piezas x Kg" variant="outlined" onChange={(event) => { setPiezas_kg(event.target.value) }} />
               </Grid>
               {/* <Grid item xs={12} md={2}>
                   <TextField id="outlined-basic" value={codigo} fullWidth label="Código" type="number" variant="outlined" onChange={(event) => { setCodigo(event.target.value) }} />
               </Grid> */}
-              <Grid item xs={12} md={2}>
+              <Grid item xs={12} md={1.71}>
                   <Button variant="contained" sx={{ height: "100%", width: "100%" }} onClick={agregarItem}>Agregar Accesorio</Button>
               </Grid>
               <Grid item xs={12} md={12}>
@@ -255,6 +262,7 @@ export default function DaccesoriosView() {
                               <Th>Nombre</Th>
                               <Th>Código</Th>
                               <Th>Peso</Th>
+                              <Th># Piezas</Th>
                               <Th>Tiempo</Th>
                               <Th>Acciones</Th>
                           </Tr>
@@ -267,6 +275,7 @@ export default function DaccesoriosView() {
                                   <Td>{dato.nombre}</Td>
                                   <Td>{dato.codigo}</Td>
                                   <Td>{dato.peso}</Td>
+                                  <Td>{dato.piezas_kg}</Td>
                                   <Td>{dato.tiempo}</Td>
                                   <Td>
                                       <Button onClick={()=>{eliminarItem(dato)}} >Eliminar</Button>

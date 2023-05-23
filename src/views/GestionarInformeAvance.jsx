@@ -330,8 +330,8 @@ await updateDoc(washingtonRef, {
                 <Td className="t-encargados">{dato.porcentajeg}</Td> */}
                 <Td>
                   <Stack direction="row" spacing={2} alignitems="center" justifyContent="center" >
-                    <Button variant='contained' onClick={() => { abrirModalEditar(dato) }} color='dark'>Cargar</Button>
-                    <Button variant='contained' onClick={() => { abrirModalProducción(dato) }} color='dark'>Producción</Button>
+                    <Button variant='contained' onClick={() => { abrirModalEditar(dato) }} color='verde'>C</Button>
+                    <Button variant='contained' onClick={() => { abrirModalProducción(dato) }} color='morado'>P</Button>
                     {/* <Button variant='contained' onClick={() => { abrirModalGalvanizado(dato) }} color='dark'>Galvanizado</Button> */}
                   </Stack>
                 </Td>
@@ -473,7 +473,8 @@ await updateDoc(washingtonRef, {
               <Tr key={index}>
                 {/* <Td className="t-encargados">{index + 1}</Td> */}
                 <Td className="t-encargados">{dato.numero}</Td>
-                <Td className="t-encargados">{dato.cantidad_galvanizado}</Td>
+                <Td className="t-encargados">{dato.cantidad_orden}</Td>
+                <Td className="t-encargados">{dato.stock}</Td>
                 <Td className="t-encargados">{dato.faltan_galvanizado}</Td>
                 <Td className="t-encargados">{dato.porcentaje_galvanizado}</Td>
                 <Td>
