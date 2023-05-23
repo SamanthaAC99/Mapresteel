@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import Typography from '@mui/material/Typography';
 import { useParams } from 'react-router-dom';  //permite obtener dato de una vista o orden a travez de una url
 import { useState, useEffect } from "react";
@@ -42,11 +42,13 @@ export default function GestionInformeAvance() {
   const [pieza, setPieza] = useState(0);
   const [pieza2, setPieza2] = useState(0);
   const [falta, setFalta] = useState(0);
+  const auxOrdenCompra = useRef();
   const [faltantesActualizada, setFaltantesActualizada] = useState("");
   const [elaboradas2, setElaboradas2] = useState(0);
   const [elaboradasGalvanizadas, setElaboradasGalvanizadas] = useState("");
   const [calculoAcc,setCalculoAcc] = useState({stock:0,porcentaje_produccion:0,elaborados_produccion:0,faltan_produccion:0})
   const [aceptarCalculo,setAceptarCalculo] = useState(false)
+  const [valorPorcentaje,setValorPorcentaje] = useState(false)
 
   const getData = async () => {
     const docRef = doc(db, "ordenescompra", id);
@@ -113,10 +115,10 @@ const filterStateProducidas = (state) => {
     setModalEditar(false)
     setOrdenesCompra(almacenar_datos)
     setCalculoAcc({stock:0,porcentaje_produccion:0,elaborados_produccion:0,faltan_produccion:0})
-    // const washingtonRef = doc(db, "ordenescompra", id);
-    // await updateDoc(washingtonRef, {
-    //   accesorios: almacenar_datos
-    // });
+    const washingtonRef = doc(db, "ordenescompra", id);
+    await updateDoc(washingtonRef, {
+      accesorios: almacenar_datos
+    });
 
  }
 
@@ -131,7 +133,7 @@ const filterStateProducidas = (state) => {
 
 
   let acc =JSON.parse(JSON.stringify(accesorioEspecifico))
-  let piezas_totales = parseFloat(acc.piezas_kg) * peso_total
+  let piezas_totales = parseInt(parseFloat(acc.piezas_kg) * peso_total)
   acc["elaborados_produccion"] = piezas_totales
 
   let faltantes_aux = parseInt(acc.faltan_produccion )
@@ -156,7 +158,22 @@ const filterStateProducidas = (state) => {
 
 }
 
+const actualizarTotalProduccion =()=>{
 
+  let ordenes_aux =  auxOrdenCompra.current.filter(filterStateActivas) 
+  let aux =  JSON.parse(JSON.stringify(ordenes_aux))
+  console.log("ordenes aux",ordenes_aux)
+  let ordenes_suma = 0
+  let ordenes_falta = 0
+  for(let i = 0; i<aux.length;i++){
+      ordenes_suma += parseInt(aux[i].cantidad_orden)
+      ordenes_falta += parseInt(aux[i].faltan_produccion) 
+  }
+  let porcentaje_produccion = ((ordenes_suma - ordenes_falta)/ordenes_suma)*100
+  setValorPorcentaje(porcentaje_produccion.toFixed(2))
+  console.log(ordenes_suma)
+  console.log(ordenes_falta)
+}
 const actualizarFaltantes = async () => { 
   let varible_accesorios=JSON.parse(JSON.stringify(ordenesCompra))
   let calc=JSON.parse(JSON.stringify(calculoAcc))
@@ -168,12 +185,15 @@ const actualizarFaltantes = async () => {
      }
    })
    setOrdenesCompra(almacenar_datos)
+   auxOrdenCompra.current =  almacenar_datos
    setAceptarCalculo(true)
    setModalProduccion(false)
-//  const washingtonRef = doc(db, "ordenescompra", id);
-//  await updateDoc(washingtonRef, {
-//    accesorios: almacenar_datos
-//  });
+   actualizarTotalProduccion()
+
+ const washingtonRef = doc(db, "ordenescompra", id);
+ await updateDoc(washingtonRef, {
+   accesorios: almacenar_datos
+ });
 }
 
 const actualizarGalvanizado = async (_data) => { 
@@ -244,7 +264,7 @@ await updateDoc(washingtonRef, {
                                     headerColor={"#ADCF9F"}
                                     avatarColor={lightGreen[700]}
                                     title={'Produccion'}
-                                    value={"90%"}
+                                    value={valorPorcentaje}
                                     // value={ctdActivas}
                                 />
                             </Grid>
